@@ -6,32 +6,29 @@ refs.select.addEventListener('change', onChange);
 
 function onChange(e) {
   const id = e.target.value;
-  console.log(id);
+  // console.log(id);
 
-  fetchBreeds(e.target.value)
-    .then(data => {
-      const t = createCards(data);
-      refs.card.innerHTML = t;
-    })
-    .then(console.log);
+  return fetchBreeds(id).then(data => {
+    // const r = data;
+    // const t = createCards(r);
+    // refs.card.innerHTML = t;
+    // console.log('hello');
+    createCards(data);
+  });
 }
 
 function createCards(data) {
   const markupCard = data
-    .map(
-      ({
-        name,
-        vetstreet_url,
-        description,
-        temperament,
-      }) => `<img src="${vetstreet_url}" alt="${name}" >
+    .map(el => {
+      return `<li><img src="${el.url}" alt="${el.breeds[0].name}" >
 
-<h1>${name}</h1>
-<p>${description}</p>
-<p>${temperament}</p>`
-    )
+<h1>${el.breeds[0].name}</h1>
+<p>${el.breeds[0].description}</p>
+<p>${el.breeds[0].temperament}</p></li>`;
+    })
     .join('');
-  return markupCard;
+  refs.card.innerHTML = markupCard;
+  // return markupCard;
 }
 
 const API_KEY =
@@ -48,9 +45,9 @@ fetch(`https://api.thecatapi.com/v1/breeds?api_key=${API_KEY}`)
   .catch(err => console.log(err));
 
 function createMarkup(arr) {
-  const options = arr.map(
-    ({ id, name }) => `<option value="${id}">${name}</option>`
-  );
+  const options = arr
+    .map(({ id, name }) => `<option value="${id}">${name}</option>`)
+    .join('');
   refs.select.insertAdjacentHTML('beforeend', options);
 }
 
