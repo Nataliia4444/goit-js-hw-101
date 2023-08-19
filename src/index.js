@@ -6,14 +6,8 @@ refs.select.addEventListener('change', onChange);
 
 function onChange(e) {
   const id = e.target.value;
-  // console.log(id);
-
   return fetchBreeds(id).then(data => {
-    // const r = data;
-    // const t = createCards(r);
-    // refs.card.innerHTML = t;
-    // console.log('hello');
-    createCards(data);
+    return createCards(data);
   });
 }
 
