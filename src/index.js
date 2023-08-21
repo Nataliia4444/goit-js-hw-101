@@ -1,12 +1,34 @@
+import SlimSelect from 'slim-select';
+import '/node_modules/slim-select/dist/slimselect.css';
+
 const refs = {
   select: document.querySelector('.breed-select'),
   card: document.querySelector('.cat-info'),
+  loader: document.querySelector('.loader'),
+  error: document.querySelector('.error'),
 };
-refs.select.addEventListener('change', onChange);
 
+// loader.style.display = 'none';
+function slim() {
+  new SlimSelect({
+    select: refs.select,
+    settings: {
+      showSearch: false,
+      searchText: 'Sorry nothing to see here',
+      searchPlaceholder: 'Search for the good stuff!',
+      searchHighlight: true,
+    },
+  });
+}
+
+refs.select.addEventListener('change', onChange);
+refs.error.classList.add('is-hidden');
 function onChange(e) {
+  // slim();
+  refs.loader.classList.add('is-hidden');
   const id = e.target.value;
   return fetchBreeds(id).then(data => {
+    console.log(data);
     return createCards(data);
   });
 }
@@ -14,11 +36,11 @@ function onChange(e) {
 function createCards(data) {
   const markupCard = data
     .map(el => {
-      return `<li><img src="${el.url}" alt="${el.breeds[0].name}" >
+      return `<img src="${el.url}" alt="${el.breeds[0].name} width="300px" height="300px" >
 
-<h1>${el.breeds[0].name}</h1>
-<p>${el.breeds[0].description}</p>
-<p>${el.breeds[0].temperament}</p></li>`;
+<h1 class="title">${el.breeds[0].name}</h1>
+<p class="text">${el.breeds[0].description}</p>
+<p class="text">${el.breeds[0].temperament}</p>`;
     })
     .join('');
   refs.card.innerHTML = markupCard;
