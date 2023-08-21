@@ -1,5 +1,7 @@
+import { fetchBreeds } from './cat-api';
 import SlimSelect from 'slim-select';
 import '/node_modules/slim-select/dist/slimselect.css';
+import Notiflix from 'notiflix';
 
 const refs = {
   select: document.querySelector('.breed-select'),
@@ -8,7 +10,10 @@ const refs = {
   error: document.querySelector('.error'),
 };
 
-// loader.style.display = 'none';
+refs.error.classList.add('is-hidden');
+refs.card.classList.add('is-hidden');
+refs.select.classList.add('is-hidden');
+
 function slim() {
   new SlimSelect({
     select: refs.select,
@@ -22,15 +27,21 @@ function slim() {
 }
 
 refs.select.addEventListener('change', onChange);
-refs.error.classList.add('is-hidden');
 function onChange(e) {
-  // slim();
-  refs.loader.classList.add('is-hidden');
+  refs.loader.classList.replace('is-hidden', 'loader');
+  refs.select.classList.add('is-hidden');
+  refs.card.classList.add('is-hidden');
   const id = e.target.value;
-  return fetchBreeds(id).then(data => {
-    console.log(data);
-    return createCards(data);
-  });
+
+  return fetchBreeds(id)
+    .then(data => {
+      refs.loader.classList.replace('loader', 'is-hidden');
+      refs.select.classList.remove('is-hidden');
+      createCards(data);
+
+      refs.card.classList.remove('is-hidden');
+    })
+    .catch(onFetchError);
 }
 
 function createCards(data) {
@@ -43,44 +54,52 @@ function createCards(data) {
 <p class="text">${el.breeds[0].temperament}</p>`;
     })
     .join('');
+
   refs.card.innerHTML = markupCard;
-  // return markupCard;
 }
 
-const API_KEY =
-  'live_sBjoY9QPKzp29SS9zbWcKJbnSa7jxZi3iyIq2P3jfmWvc6bgOQa2PkZjuFivagNN';
+function f() {
+  const API_KEY =
+    'live_sBjoY9QPKzp29SS9zbWcKJbnSa7jxZi3iyIq2P3jfmWvc6bgOQa2PkZjuFivagNN';
 
-fetch(`https://api.thecatapi.com/v1/breeds?api_key=${API_KEY}`)
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    return response.json();
-  })
-  .then(data => createMarkup(data))
-  .catch(err => console.log(err));
+  fetch(`https://api.thecatapi.com/v1/breeds?api_key=${API_KEY}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
 
+      return response.json();
+    })
+    .then(data => {
+      createMarkup(data);
+      slim();
+
+      // refs.card.classList.remove('is-hidden');
+      refs.select.classList.remove('is-hidden');
+      refs.loader.classList.replace('loader', 'is-hidden');
+    })
+    .catch(onFetchError);
+}
+f();
 function createMarkup(arr) {
   const options = arr
     .map(({ id, name }) => `<option value="${id}">${name}</option>`)
     .join('');
   refs.select.insertAdjacentHTML('beforeend', options);
 }
+function onFetchError(error) {
+  refs.select.classList.remove('is-hidden');
+  refs.loader.classList.replace('loader', 'is-hidden');
+  console.log(error);
+  refs.catInfo.innerHTML = '';
 
-function fetchBreeds(id) {
-  const API_URL = 'https://api.thecatapi.com/v1/images/search';
-  const API_KEY =
-    'live_sBjoY9QPKzp29SS9zbWcKJbnSa7jxZi3iyIq2P3jfmWvc6bgOQa2PkZjuFivagNN';
-
-  const params = new URLSearchParams({
-    api_key: API_KEY,
-    breed_ids: id,
-  });
-
-  return fetch(`${API_URL}?${params}`).then(response => {
-    if (!response.ok) {
-      throw new Error(response.statusText);
+  Notiflix.Notify.failure(
+    'Oops! Something went wrong! Try reloading the page or select another cat breed!',
+    {
+      position: 'center-center',
+      timeout: 5000,
+      width: '400px',
+      fontSize: '24px',
     }
-    return response.json();
-  });
+  );
 }
